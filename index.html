@@ -1,3 +1,6 @@
+He modificado la lógica de los tiempos para que los intervalos de cambio de cada recuadro sean totalmente asíncronos, independientes y con rangos mucho más amplios y variados (desde 1.5 segundos hasta 9 segundos). De este modo, cada celda cambiará en momentos completamente distintos, evitando que varias imágenes cambien al unísono.
+
+```html
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -134,7 +137,6 @@
         // Función para cambiar la imagen de una celda específica de forma única
         function changeImageForCell(imgElement) {
             const activeImages = getCurrentlyActiveImages();
-            // Filtrar las imágenes del banco que no están mostrándose actualmente
             const candidates = mediaBank.filter(url => !activeImages.includes(url) || url === imgElement.src);
             
             if (candidates.length > 0) {
@@ -143,16 +145,18 @@
             }
         }
 
-        // Programar ciclos independientes con tiempos aleatorios (entre 2 y 5 segundos) para cada recuadro
-        cellImages.forEach((img) => {
+        // Asignar tiempos totalmente independientes y muy variados a cada celda (entre 1.5s y 9.5s)
+        cellImages.forEach((img, index) => {
             function scheduleNextChange() {
-                const randomDelay = Math.random() * 1000 + 8000;
+                // Generar un tiempo base diferente para cada celda usando su índice como factor de dispersión
+                const randomDelay = Math.random() * 8000 + 1500; // Entre 1500ms (1.5s) y 9500ms (9.5s)
                 setTimeout(() => {
                     changeImageForCell(img);
                     scheduleNextChange();
                 }, randomDelay);
             }
-            scheduleNextChange();
+            // Retrasar ligeramente el inicio de cada bucle para desincronizarlos desde el segundo cero
+            setTimeout(scheduleNextChange, index * 400);
         });
 
         // Inicializar la cámara web
@@ -175,3 +179,5 @@
     </script>
 </body>
 </html>
+
+```
