@@ -146,7 +146,7 @@
         // Programar ciclos independientes con tiempos aleatorios (entre 2 y 5 segundos) para cada recuadro
         cellImages.forEach((img) => {
             function scheduleNextChange() {
-                const randomDelay = Math.random() * 2000 + 6000;
+                const randomDelay = Math.random() * 1000 + 8000;
                 setTimeout(() => {
                     changeImageForCell(img);
                     scheduleNextChange();
