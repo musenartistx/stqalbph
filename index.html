@@ -155,8 +155,8 @@ He modificado la lógica de los tiempos para que los intervalos de cambio de cad
                     scheduleNextChange();
                 }, randomDelay);
             }
-            // Retrasar ligeramente el inicio de cada bucle para desincronizarlos desde el segundo cero
-            setTimeout(scheduleNextChange, index * 400);
+            const randomInitialDelay = Math.random() * 5000;
+            setTimeout(scheduleNextChange, randomInitialDelay);
         });
 
         // Inicializar la cámara web
