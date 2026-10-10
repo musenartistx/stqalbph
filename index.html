@@ -136,27 +136,24 @@
             img.src = initialShuffle[index];
         });
 
-        // Obtener URLs activas en pantalla para evitar duplicados
+        // Obtener URLs activas en pantalla
         function getActiveImages() {
             return Array.from(cellImages).map(img => img.src);
         }
 
-        // Función para calcular un intervalo variable de forma no lineal (permite ráfagas rápidas y pausas largas)
+        // Función para calcular un intervalo variable de velocidad
         function getRandomDuration() {
             const rand = Math.random();
             if (rand < 0.35) {
-                // 35% de probabilidad: Ráfaga ultra rápida (entre 80 ms y 400 ms)
-                return Math.random() * 320 + 80;
+                return Math.random() * 320 + 80; // Ráfaga rápida
             } else if (rand < 0.75) {
-                // 40% de probabilidad: Velocidad media normal (entre 800 ms y 3500 ms)
-                return Math.random() * 2700 + 800;
+                return Math.random() * 2700 + 800; // Velocidad normal
             } else {
-                // 25% de probabilidad: Transición muy lenta y pausada (entre 4000 ms y 12000 ms)
-                return Math.random() * 8000 + 4000;
+                return Math.random() * 8000 + 4000; // Transición lenta
             }
         }
 
-        // Crear un estado independiente de tiempo para cada celda
+        // Crear estado independiente para cada celda
         const now = performance.now();
         const cellStates = Array.from(cellImages).map((img, index) => {
             return {
@@ -171,7 +168,18 @@
             cellStates.forEach(cell => {
                 if (currentTime - cell.lastChange >= cell.nextDuration) {
                     const activeImages = getActiveImages();
-                    const candidates = mediaBank.filter(url => !activeImages.includes(url) || url === cell.element.src);
+                    
+                    let candidates;
+                    // Ocasionalmente (15% de probabilidad), permitir repetición SOLO si es un archivo .gif
+                    const allowGifRepeat = Math.random() < 0.15;
+
+                    if (allowGifRepeat) {
+                        // Permitir cualquier imagen del banco, dando prioridad o incluyendo los gifs aunque estén en pantalla
+                        candidates = mediaBank;
+                    } else {
+                        // Comportamiento normal: evitar duplicados activos
+                        candidates = mediaBank.filter(url => !activeImages.includes(url) || url === cell.element.src);
+                    }
                     
                     if (candidates.length > 0) {
                         const randomUrl = candidates[Math.floor(Math.random() * candidates.length)];
@@ -179,7 +187,6 @@
                     }
 
                     cell.lastChange = currentTime;
-                    // Asignar una nueva duración totalmente variable (rápida o lenta de forma impredecible)
                     cell.nextDuration = getRandomDuration();
                 }
             });
