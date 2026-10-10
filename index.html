@@ -141,16 +141,28 @@
             return Array.from(cellImages).map(img => img.src);
         }
 
-        const possibleBases = [100, 300, 800];
+        // Función para calcular un intervalo variable de forma no lineal (permite ráfagas rápidas y pausas largas)
+        function getRandomDuration() {
+            const rand = Math.random();
+            if (rand < 0.35) {
+                // 35% de probabilidad: Ráfaga ultra rápida (entre 80 ms y 400 ms)
+                return Math.random() * 320 + 80;
+            } else if (rand < 0.75) {
+                // 40% de probabilidad: Velocidad media normal (entre 800 ms y 3500 ms)
+                return Math.random() * 2700 + 800;
+            } else {
+                // 25% de probabilidad: Transición muy lenta y pausada (entre 4000 ms y 12000 ms)
+                return Math.random() * 8000 + 4000;
+            }
+        }
 
         // Crear un estado independiente de tiempo para cada celda
         const now = performance.now();
         const cellStates = Array.from(cellImages).map((img, index) => {
-            const randomBase = possibleBases[Math.floor(Math.random() * possibleBases.length)];
             return {
                 element: img,
                 lastChange: now,
-                nextDuration: Math.random() * 10000 + randomBase + (index * 150)
+                nextDuration: getRandomDuration() + (index * 100)
             };
         });
 
@@ -167,9 +179,8 @@
                     }
 
                     cell.lastChange = currentTime;
-                    // Elegir un nuevo base aleatorio (100, 300 u 800) para el siguiente intervalo
-                    const nextBase = possibleBases[Math.floor(Math.random() * possibleBases.length)];
-                    cell.nextDuration = Math.random() * 10000 + nextBase;
+                    // Asignar una nueva duración totalmente variable (rápida o lenta de forma impredecible)
+                    cell.nextDuration = getRandomDuration();
                 }
             });
             requestAnimationFrame(animationTick);
