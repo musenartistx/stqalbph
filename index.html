@@ -62,7 +62,7 @@
     </div>
 
     <script>
-        // Banco completo de imágenes proporcionado
+        // Banco de imágenes actualizado (sin sxe4gm.jpg)
         const mediaBank = [
             "https://files.catbox.moe/yxkzqm.jpg",
             "https://files.catbox.moe/60vm14.jpg",
@@ -88,7 +88,6 @@
             "https://files.catbox.moe/lguvd0.jpg",
             "https://files.catbox.moe/uheou7.jpg",
             "https://files.catbox.moe/0m89a9.jpg",
-            "https://files.catbox.moe/sxe4gm.jpg",
             "https://files.catbox.moe/elru9u.jpg",
             "https://files.catbox.moe/j50sy2.jpg",
             "https://files.catbox.moe/5mt4vz.jpg",
@@ -141,79 +140,4 @@
             return Array.from(cellImages).map(img => img.src);
         }
 
-        // Definir rangos de tiempo fijos y totalmente diferenciados para cada una de las 8 celdas
-        // Esto asegura que cada celda tenga un ritmo totalmente único y jamás coincidan matemáticamente
-        const cellTimeRanges = [
-            { min: 400, max: 1500 },    // Celda 0: Muy rápida
-            { min: 2500, max: 6000 },   // Celda 1: Pausada
-            { min: 800, max: 3000 },    // Celda 2: Media
-            { min: 5000, max: 11000 },  // Celda 3: Lenta
-            { min: 1200, max: 4500 },   // Celda 5: Variable
-            { min: 300, max: 1200 },    // Celda 6: Muy rápida / ráfaga
-            { min: 3500, max: 8000 },   // Celda 7: Lenta / constante
-            { min: 1500, max: 5500 }    // Celda 8: Moderada
-        ];
-
-        const now = performance.now();
-        const cellStates = Array.from(cellImages).map((img, index) => {
-            const range = cellTimeRanges[index];
-            return {
-                element: img,
-                lastChange: now,
-                minDuration: range.min,
-                maxDuration: range.max,
-                nextDuration: Math.random() * (range.max - range.min) + range.min + (index * 350)
-            };
-        });
-
-        // Bucle asíncrono con requestAnimationFrame
-        function animationTick(currentTime) {
-            cellStates.forEach(cell => {
-                if (currentTime - cell.lastChange >= cell.nextDuration) {
-                    const activeImages = getActiveImages();
-                    
-                    // Ocasionalmente (15% de probabilidad), permitir repetición SOLO si es un archivo .gif
-                    const allowGifRepeat = Math.random() < 0.15;
-                    let candidates;
-
-                    if (allowGifRepeat) {
-                        candidates = mediaBank;
-                    } else {
-                        candidates = mediaBank.filter(url => !activeImages.includes(url) || url === cell.element.src);
-                    }
-                    
-                    if (candidates.length > 0) {
-                        const randomUrl = candidates[Math.floor(Math.random() * candidates.length)];
-                        cell.element.src = randomUrl;
-                    }
-
-                    cell.lastChange = currentTime;
-                    // Recalcular el tiempo dentro de su propio rango exclusivo
-                    cell.nextDuration = Math.random() * (cell.maxDuration - cell.minDuration) + cell.minDuration;
-                }
-            });
-            requestAnimationFrame(animationTick);
-        }
-
-        requestAnimationFrame(animationTick);
-
-        // Inicializar la cámara web
-        async function initWebcam() {
-            const videoElement = document.getElementById('webcam');
-            const errorElement = document.getElementById('cam-error');
-            try {
-                const stream = await navigator.mediaDevices.getUserMedia({ 
-                    video: { width: { ideal: 1280 }, height: { ideal: 720 }, facingMode: "user" }, 
-                    audio: false 
-                });
-                videoElement.srcObject = stream;
-            } catch (err) {
-                console.error("Error al acceder a la cámara web:", err);
-                errorElement.classList.remove('hidden');
-            }
-        }
-
-        initWebcam();
-    </script>
-</body>
-</html>
+        // Rangos
