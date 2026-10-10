@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mosaico 3x3 - Webcam & Media</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body, html {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            background-color: #000;
+        }
+    </style>
+</head>
+<body class="bg-black flex items-center justify-center h-screen w-screen overflow-hidden">
+
+    <!-- Contenedor de la cuadrícula 3x3 ocupando toda la pantalla -->
+    <div id="grid-container" class="grid grid-cols-3 grid-rows-3 w-full h-full gap-0 p-0 m-0">
+        <!-- Celda 0 (Fila 1, Columna 1) -->
+        <div class="relative w-full h-full overflow-hidden bg-black flex items-center justify-center">
+            <img class="cell-img w-full h-full object-cover" src="" alt="">
+        </div>
+        <!-- Celda 1 (Fila 1, Columna 2) -->
+        <div class="relative w-full h-full overflow-hidden bg-black flex items-center justify-center">
+            <img class="cell-img w-full h-full object-cover" src="" alt="">
+        </div>
+        <!-- Celda 2 (Fila 1, Columna 3) -->
+        <div class="relative w-full h-full overflow-hidden bg-black flex items-center justify-center">
+            <img class="cell-img w-full h-full object-cover" src="" alt="">
+        </div>
+        <!-- Celda 3 (Fila 2, Columna 1) -->
+        <div class="relative w-full h-full overflow-hidden bg-black flex items-center justify-center">
+            <img class="cell-img w-full h-full object-cover" src="" alt="">
+        </div>
+        <!-- Celda Central (Fila 2, Columna 2) - Webcam con Zoom y Enfoque en la boca -->
+        <div class="relative w-full h-full overflow-hidden bg-black flex items-center justify-center">
+            <video id="webcam" autoplay playsinline muted class="absolute w-full h-full object-cover" style="transform: scale(2.2); transform-origin: center center;"></video>
+            <div id="cam-error" class="absolute inset-0 flex items-center justify-center text-xs text-zinc-500 text-center p-2 bg-black hidden">
+                Cámara no disponible
+            </div>
+        </div>
+        <!-- Celda 5 (Fila 2, Columna 3) -->
+        <div class="relative w-full h-full overflow-hidden bg-black flex items-center justify-center">
+            <img class="cell-img w-full h-full object-cover" src="" alt="">
+        </div>
+        <!-- Celda 6 (Fila 3, Columna 1) -->
+        <div class="relative w-full h-full overflow-hidden bg-black flex items-center justify-center">
+            <img class="cell-img w-full h-full object-cover" src="" alt="">
+        </div>
+        <!-- Celda 7 (Fila 3, Columna 2) -->
+        <div class="relative w-full h-full overflow-hidden bg-black flex items-center justify-center">
+            <img class="cell-img w-full h-full object-cover" src="" alt="">
+        </div>
+        <!-- Celda 8 (Fila 3, Columna 3) -->
+        <div class="relative w-full h-full overflow-hidden bg-black flex items-center justify-center">
+            <img class="cell-img w-full h-full object-cover" src="" alt="">
+        </div>
+    </div>
+
+    <script>
+        // Banco completo de imágenes proporcionado
+        const mediaBank = [
+            "https://files.catbox.moe/yxkzqm.jpg",
+            "https://files.catbox.moe/60vm14.jpg",
+            "https://files.catbox.moe/x4qiyh.gif",
+            "https://files.catbox.moe/73cx3m.gif",
+            "https://files.catbox.moe/l8odyj.gif",
+            "https://files.catbox.moe/fgf9pt.jpg",
+            "https://files.catbox.moe/k6f3qh.gif",
+            "https://files.catbox.moe/ohzuwa.gif",
+            "https://files.catbox.moe/t2fqx3.gif",
+            "https://files.catbox.moe/nyx8bs.gif",
+            "https://files.catbox.moe/efqcc2.jpg",
+            "https://files.catbox.moe/xy4iwi.png",
+            "https://files.catbox.moe/uu52gm.gif",
+            "https://files.catbox.moe/hf5gs6.jpeg",
+            "https://files.catbox.moe/f56po2.jpg",
+            "https://files.catbox.moe/w7ezh6.jpg",
+            "https://files.catbox.moe/g01jo8.jpg",
+            "https://files.catbox.moe/k1i1ac.jpg",
+            "https://files.catbox.moe/j0su7v.jpeg",
+            "https://files.catbox.moe/hb4t84.jpeg",
+            "https://files.catbox.moe/apz99i.jpg",
+            "https://files.catbox.moe/lguvd0.jpg",
+            "https://files.catbox.moe/uheou7.jpg",
+            "https://files.catbox.moe/0m89a9.jpg",
+            "https://files.catbox.moe/sxe4gm.jpg",
+            "https://files.catbox.moe/elru9u.jpg",
+            "https://files.catbox.moe/j50sy2.jpg",
+            "https://files.catbox.moe/5mt4vz.jpg",
+            "https://files.catbox.moe/629nqi.jpg",
+            "https://files.catbox.moe/9hu4tf.jpg",
+            "https://files.catbox.moe/r91igq.jpg",
+            "https://files.catbox.moe/r3490e.jpg",
+            "https://files.catbox.moe/2chio6.jpg",
+            "https://files.catbox.moe/lrelar.jpg",
+            "https://files.catbox.moe/t2x3sy.jpg",
+            "https://files.catbox.moe/8n4u6r.jpg",
+            "https://files.catbox.moe/mep0nh.jpg",
+            "https://files.catbox.moe/vx21wz.jpg",
+            "https://files.catbox.moe/3t7tpb.jpg",
+            "https://files.catbox.moe/yz2b5x.jpg",
+            "https://files.catbox.moe/vke8q4.jpg",
+            "https://files.catbox.moe/u2rzqy.jpg",
+            "https://files.catbox.moe/24h1qt.jpg",
+            "https://files.catbox.moe/4sdtjd.jpg",
+            "https://files.catbox.moe/kxdxcq.jpg",
+            "https://files.catbox.moe/1t3urf.jpg",
+            "https://files.catbox.moe/n0bmdv.jpg",
+            "https://files.catbox.moe/h8428d.jpg",
+            "https://files.catbox.moe/ymcu9e.jpg",
+            "https://files.catbox.moe/dvmcof.jpg",
+            "https://files.catbox.moe/8lwm1h.jpg",
+            "https://files.catbox.moe/w5ionr.jpg"
+        ];
+
+        const cellImages = document.querySelectorAll('.cell-img');
+
+        // Función para barajar un arreglo aleatoriamente
+        function shuffle(array) {
+            let currentIndex = array.length, randomIndex;
+            while (currentIndex !== 0) {
+                randomIndex = Math.floor(Math.random() * currentIndex);
+                currentIndex--;
+                [array[currentIndex], array[randomIndex]] = [array[randomIndex], array[currentIndex]];
+            }
+            return array;
+        }
+
+        // Asignar imágenes únicas a los 8 recuadros sin repetir en pantalla
+        function updateImages() {
+            const shuffled = shuffle([...mediaBank]);
+            cellImages.forEach((img, index) => {
+                img.src = shuffled[index % shuffled.length];
+            });
+        }
+
+        // Inicializar imágenes y rotarlas cada 3 segundos
+        updateImages();
+        setInterval(updateImages, 3000);
+
+        // Inicializar la cámara web
+        async function initWebcam() {
+            const videoElement = document.getElementById('webcam');
+            const errorElement = document.getElementById('cam-error');
+            try {
+                const stream = await navigator.mediaDevices.getUserMedia({ 
+                    video: { width: { ideal: 1280 }, height: { ideal: 720 }, facingMode: "user" }, 
+                    audio: false 
+                });
+                videoElement.srcObject = stream;
+            } catch (err) {
+                console.error("Error al acceder a la cámara web:", err);
+                errorElement.classList.remove('hidden');
+            }
+        }
+
+        initWebcam();
+    </script>
+</body>
+</html>
