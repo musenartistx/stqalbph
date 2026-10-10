@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Mosaico 3x3 - Webcam & Media</title>
+    <title>Sólo tiene que abrir la boca para dañarme</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         body, html {
@@ -120,28 +120,40 @@
 
         const cellImages = document.querySelectorAll('.cell-img');
 
-        // Función para barajar un arreglo aleatoriamente
-        function shuffle(array) {
-            let currentIndex = array.length, randomIndex;
-            while (currentIndex !== 0) {
-                randomIndex = Math.floor(Math.random() * currentIndex);
-                currentIndex--;
-                [array[currentIndex], array[randomIndex]] = [array[randomIndex], array[currentIndex]];
+        // Obtener las imágenes que están actualmente visibles en pantalla
+        function getCurrentlyActiveImages() {
+            return Array.from(cellImages).map(img => img.src).filter(src => src !== "");
+        }
+
+        // Inicializar cada celda con una imagen única al arranque
+        const availableInitial = [...mediaBank].sort(() => 0.5 - Math.random());
+        cellImages.forEach((img, index) => {
+            img.src = availableInitial[index];
+        });
+
+        // Función para cambiar la imagen de una celda específica de forma única
+        function changeImageForCell(imgElement) {
+            const activeImages = getCurrentlyActiveImages();
+            // Filtrar las imágenes del banco que no están mostrándose actualmente
+            const candidates = mediaBank.filter(url => !activeImages.includes(url) || url === imgElement.src);
+            
+            if (candidates.length > 0) {
+                const randomUrl = candidates[Math.floor(Math.random() * candidates.length)];
+                imgElement.src = randomUrl;
             }
-            return array;
         }
 
-        // Asignar imágenes únicas a los 8 recuadros sin repetir en pantalla
-        function updateImages() {
-            const shuffled = shuffle([...mediaBank]);
-            cellImages.forEach((img, index) => {
-                img.src = shuffled[index % shuffled.length];
-            });
-        }
-
-        // Inicializar imágenes y rotarlas cada 3 segundos
-        updateImages();
-        setInterval(updateImages, 3000);
+        // Programar ciclos independientes con tiempos aleatorios (entre 2 y 5 segundos) para cada recuadro
+        cellImages.forEach((img) => {
+            function scheduleNextChange() {
+                const randomDelay = Math.random() * 3000 + 2000; // Entre 2000ms (2s) y 5000ms (5s)
+                setTimeout(() => {
+                    changeImageForCell(img);
+                    scheduleNextChange();
+                }, randomDelay);
+            }
+            scheduleNextChange();
+        });
 
         // Inicializar la cámara web
         async function initWebcam() {
