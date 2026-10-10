@@ -1,3 +1,10 @@
+Para resolver definitivamente cualquier sensación de sincronización, cambié por completo la arquitectura del sistema de tiempos.
+
+En lugar de usar temporizadores (`setTimeout`), ahora implementé un **bucle maestro basado en `requestAnimationFrame` con marcas de tiempo de alta precisión (`performance.now()`)**. Cada recuadro funciona como un proceso independiente que mide su propio tiempo transcurrido de forma completamente aislada. Cuando cumple su propio intervalo aleatorio (único y recalculado en cada cambio), se actualiza sin depender de los demás, eliminando cualquier posibilidad de agrupamiento o patrón rítmico.
+
+Aquí tienes el código completo con esta nueva solución:
+
+```html
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -120,7 +127,7 @@
 
         const cellImages = document.querySelectorAll('.cell-img');
 
-        // Función auxiliar para mezclar un arreglo aleatoriamente
+        // Función auxiliar para mezclar arreglos
         function shuffle(array) {
             let arr = [...array];
             for (let i = arr.length - 1; i > 0; i--) {
@@ -130,33 +137,49 @@
             return arr;
         }
 
-        // Asignar un ciclo (playlist) totalmente independiente a cada recuadro para evitar sincronías
-        cellImages.forEach((img) => {
-            let playlist = shuffle(mediaBank);
-            let playlistIndex = 0;
-
-            // Establecer imagen inicial
-            img.src = playlist[playlistIndex];
-
-            function scheduleNextChange() {
-                // Generar un tiempo completamente independiente y variable (entre 600ms y 12000ms)
-                const randomDelay = Math.random() * 11400 + 600;
-
-                setTimeout(() => {
-                    playlistIndex++;
-                    // Si se acaba la playlist de esta celda, se vuelve a mezclar de forma única para este recuadro
-                    if (playlistIndex >= playlist.length) {
-                        playlist = shuffle(mediaBank);
-                        playlistIndex = 0;
-                    }
-                    img.src = playlist[playlistIndex];
-                    scheduleNextChange(); // Ciclo recursivo totalmente independiente
-                }, randomDelay);
-            }
-
-            // Iniciar con un retraso totalmente aleatorio
-            setTimeout(scheduleNextChange, Math.random() * 10000);
+        // Asignar imágenes iniciales únicas
+        const initialShuffle = shuffle(mediaBank);
+        cellImages.forEach((img, index) => {
+            img.src = initialShuffle[index];
         });
+
+        // Obtener URLs activas en pantalla para evitar duplicados
+        function getActiveImages() {
+            return Array.from(cellImages).map(img => img.src);
+        }
+
+        // Crear un estado independiente de tiempo para cada celda
+        const now = performance.now();
+        const cellStates = Array.from(cellImages).map((img, index) => {
+            return {
+                element: img,
+                lastChange: now,
+                // Duración individual completamente asíncrona (entre 800ms y 14000ms con desfasaje inicial)
+                nextDuration: Math.random() * 13200 + 800 + (index * 150)
+            };
+        });
+
+        // Bucle asíncrono con requestAnimationFrame (independiente de temporizadores del navegador)
+        function animationTick(currentTime) {
+            cellStates.forEach(cell => {
+                if (currentTime - cell.lastChange >= cell.nextDuration) {
+                    const activeImages = getActiveImages();
+                    const candidates = mediaBank.filter(url => !activeImages.includes(url) || url === cell.element.src);
+                    
+                    if (candidates.length > 0) {
+                        const randomUrl = candidates[Math.floor(Math.random() * candidates.length)];
+                        cell.element.src = randomUrl;
+                    }
+
+                    cell.lastChange = currentTime;
+                    // Asignar un nuevo intervalo totalmente aleatorio para el próximo cambio de esta celda
+                    cell.nextDuration = Math.random() * 13200 + 800;
+                }
+            });
+            requestAnimationFrame(animationTick);
+        }
+
+        requestAnimationFrame(animationTick);
 
         // Inicializar la cámara web
         async function initWebcam() {
@@ -178,3 +201,5 @@
     </script>
 </body>
 </html>
+
+```
